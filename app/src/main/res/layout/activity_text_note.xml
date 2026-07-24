@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".TextNoteActivity">
+
+    <Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="@drawable/toolbar_background">
+
+        <TextView
+            android:id="@+id/txtBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:contentDescription="@string/btn_back"
+            android:clickable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_back" />
+        <EditText
+            android:id="@+id/editName"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAutofill="no"
+            android:autofillHints=""
+            android:maxLines="1"
+            android:inputType="text"
+            android:textStyle="normal"
+            android:textColor="#FF161616"
+            android:maxLength="128"
+            android:layout_marginStart="8dp"
+            android:text="@string/new_text"
+            tools:ignore="LabelFor" />
+
+    </Toolbar>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/txt_note_text"
+            android:fillViewport="true">
+
+            <com.eaydin79.notes.NoteEditText
+                android:id="@+id/noteEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:autofillHints=""
+                android:inputType="textMultiLine"
+                android:gravity="top|start"
+                android:scrollbars="vertical"
+                android:overScrollMode="always"
+                android:importantForAccessibility="no"
+                android:background="@color/note"
+                android:padding="8dp"
+                android:textSize="20sp"
+                android:textColor="@color/note_edit_colors"
+                tools:ignore="LabelFor" />
+
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/layout_text_size"
+            android:visibility="visible"
+            android:saveEnabled="false"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@color/text_size_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+            android:gravity="center"
+            android:paddingVertical="0dp"
+            android:paddingHorizontal="32dp">
+
+            <TextView
+                android:id="@+id/txtDecreaseSize"
+                android:contentDescription="@string/txt_decrease_text_size"
+                android:background="?android:attr/selectableItemBackground"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:clickable="true"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:padding="12dp"
+                android:textSize="14sp"
+                android:text="@string/btn_A" />
+            <SeekBar
+                android:id="@+id/seekTextSize"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:paddingVertical="0dp"
+                android:layout_weight="1"
+                android:tickMark="@color/dark_gray"
+                android:progress="4"
+                android:min="0"
+                android:max="10" />
+            <TextView
+                android:id="@+id/txtIncreaseSize"
+                android:contentDescription="@string/txt_increase_text_size"
+                android:background="?android:attr/selectableItemBackground"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:clickable="true"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:padding="12dp"
+                android:textSize="30sp"
+                android:text="@string/btn_A" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>

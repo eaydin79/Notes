@@ -1,0 +1,64 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.eaydin79.notes.ChecklistNoteActivity">
+
+    <item
+        android:id="@+id/action_add_new"
+        android:title="@string/menu_add_note"
+        android:icon="@drawable/ic_action_add_new"
+        android:enabled="true"
+        android:visible="false"
+        android:orderInCategory="101"
+        android:showAsAction="ifRoom"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/action_edit"
+        android:title="@string/menu_edit_item"
+        android:icon="@drawable/ic_action_edit"
+        android:enabled="true"
+        android:visible="false"
+        android:orderInCategory="102"
+        android:showAsAction="ifRoom"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:title="@string/menu_delete_note"
+        android:icon="@drawable/ic_action_delete"
+        android:enabled="true"
+        android:visible="false"
+        android:orderInCategory="103"
+        android:showAsAction="ifRoom"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/action_select_all"
+        android:title="@string/menu_select_all"
+        android:icon="@drawable/ic_action_select_all"
+        android:enabled="true"
+        android:visible="false"
+        android:orderInCategory="104"
+        android:showAsAction="never"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/action_select_none"
+        android:title="@string/menu_select_none"
+        android:icon="@drawable/ic_action_select_none"
+        android:enabled="false"
+        android:visible="false"
+        android:orderInCategory="105"
+        android:showAsAction="never"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/action_backups"
+        android:title="@string/menu_manage_backups"
+        android:enabled="false"
+        android:visible="false"
+        android:orderInCategory="106"
+        android:showAsAction="never"
+        tools:ignore="AppCompatResource" />
+
+</menu>

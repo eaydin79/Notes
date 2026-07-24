@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ChecklistNoteActivity">
+
+    <Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:background="@drawable/toolbar_background"
+        android:layout_height="?android:attr/actionBarSize">
+
+        <TextView
+            android:id="@+id/txtBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:contentDescription="@string/btn_back"
+            android:clickable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_back" />
+        <EditText
+            android:id="@+id/editName"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAutofill="no"
+            android:autofillHints=""
+            android:maxLines="1"
+            android:inputType="text"
+            android:textStyle="normal"
+            android:textColor="#FF161616"
+            android:maxLength="128"
+            android:layout_marginHorizontal="8sp"
+            android:text="@string/new_list"
+            tools:ignore="LabelFor" />
+
+    </Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:background="@color/white">
+
+        <LinearLayout
+            android:id="@+id/layout_items"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:paddingHorizontal="4dp"
+            android:orientation="vertical" />
+
+    </ScrollView>
+
+
+</LinearLayout>

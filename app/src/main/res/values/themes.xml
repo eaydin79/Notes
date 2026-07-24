@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Notes" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Theme.Notes" parent="Base.Theme.Notes" />
+</resources>

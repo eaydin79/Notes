@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="dark_gray">#FF404040</color>
+    <color name="light_gray">#FFDDDDDD</color>
+    <color name="toolbar">#FFFCFCFC</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="edittext_hint">#FF606060</color>
+    <color name="note">#FFFFFBD4</color>
+    <color name="warning">#FFF6182A</color>
+    <color name="icon">#99343434</color>
+    <color name="text_size_layout">#DDFCFCFC</color>
+</resources>
