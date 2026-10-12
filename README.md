@@ -2,5 +2,4 @@
 
 No internet access, no ads, no in-app purchase, just store notes in your phone.
 
-![App Preview](screenshots/preview1.png)
-![App Preview](screenshots/preview2.png)
+![App Preview](screenshots/preview3.png)
