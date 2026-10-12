@@ -2,8 +2,6 @@
 
 No internet access, no ads, no in-app purchases. It just stores your notes on your phone.
 
-![Screenshot of the Notes app](screenshots/preview3.png)
-
 ## Features
 
 - Plain text notes and checklists
@@ -15,6 +13,8 @@ No internet access, no ads, no in-app purchases. It just stores your notes on yo
 ## Requirements
 
 Android 9 (API 28) or higher.
+
+![Screenshot of the Notes app](screenshots/preview3.png)
 
 ## Building
 
