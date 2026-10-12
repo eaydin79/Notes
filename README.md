@@ -24,4 +24,4 @@ Open the project in Android Studio and run the `app` configuration, or build fro
 
 ## License
 
-Add your license here.
+This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
