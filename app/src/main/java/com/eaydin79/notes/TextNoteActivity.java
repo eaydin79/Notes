@@ -8,11 +8,16 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Toolbar;
+import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 public class TextNoteActivity extends Activity {
 
+    private static final int REQUEST_EXPORT = 100;
     private EditText editNoteName;
     private NoteEditText noteEditText;
     private NoteManager noteManager;
@@ -24,6 +29,33 @@ public class TextNoteActivity extends Activity {
     private Intent intentNote;
     private SeekBar seekTextSize;
     private LinearLayout layoutTextSize;
+
+    private void exportNote() {
+        String name = editNoteName.getText().toString().trim();
+        if (name.isEmpty()) name = getString(R.string.new_text);
+        name = name.replaceAll("[\\\\/:*?\"<>|]", "_"); // keep the file name valid
+
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TITLE, name + ".txt");
+        startActivityForResult(intent, REQUEST_EXPORT);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQUEST_EXPORT || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+
+        // "wt" = write + truncate, so overwriting an existing file doesn't leave old trailing text
+        try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
+            if (out == null) throw new IOException("Cannot open output stream");
+            out.write(noteEditText.getNoteData().getBytes(StandardCharsets.UTF_8));
+            Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void saveNote() {
         note.setName(editNoteName.getText().toString().trim().isEmpty() ? getString(R.string.new_text) : editNoteName.getText().toString().trim());
@@ -64,6 +96,7 @@ public class TextNoteActivity extends Activity {
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_text_size) showTextSizeLayout();
             if (item.getItemId() == R.id.action_backups) showHistory();
+            if (item.getItemId() == R.id.action_export) exportNote();
             return false;
         });
     }

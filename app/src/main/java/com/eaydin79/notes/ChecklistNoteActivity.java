@@ -17,6 +17,9 @@ import android.widget.Toolbar;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class ChecklistNoteActivity extends Activity {
 
@@ -32,6 +35,45 @@ public class ChecklistNoteActivity extends Activity {
     private boolean editable;
     private String noteFile;
     private Intent intentNote;
+
+    private static final int REQUEST_EXPORT = 100;
+
+    private String buildExportText() {
+        StringBuilder sb = new StringBuilder();
+        for (ItemLayout itemLayout : itemLayoutList) {
+            NoteItem item = itemLayout.getItem();
+            sb.append(item.isChecked() ? "[x] " : "[ ] ")
+                    .append(item.getText())
+                    .append('\n');
+        }
+        return sb.toString();
+    }
+
+    private void exportNote() {
+        String name = editNoteName.getText().toString().trim();
+        if (name.isEmpty()) name = getString(R.string.new_list);
+        name = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TITLE, name + ".txt");
+        startActivityForResult(intent, REQUEST_EXPORT);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQUEST_EXPORT || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+
+        try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
+            if (out == null) throw new IOException("Cannot open output stream");
+            out.write(buildExportText().getBytes(StandardCharsets.UTF_8));
+            Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void addItemLayouts() {
         for (NoteItem noteItem: note.getNoteItemList()) addItemLayout(noteItem);
@@ -240,6 +282,7 @@ public class ChecklistNoteActivity extends Activity {
             if (item.getItemId() == R.id.action_select_all) selectAllLayout();
             if (item.getItemId() == R.id.action_select_none) selectNoneLayout();
             if (item.getItemId() == R.id.action_backups) showHistory();
+            if (item.getItemId() == R.id.action_export) exportNote();
             return false;
         });
     }

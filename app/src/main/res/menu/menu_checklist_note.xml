@@ -61,4 +61,13 @@
         android:showAsAction="never"
         tools:ignore="AppCompatResource" />
 
+    <item
+        android:id="@+id/action_export"
+        android:title="@string/menu_export_note"
+        android:enabled="true"
+        android:visible="true"
+        android:orderInCategory="107"
+        android:showAsAction="never"
+        tools:ignore="AppCompatResource" />
+
 </menu>

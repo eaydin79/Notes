@@ -51,4 +51,7 @@
     <string name="btn_A">A</string>
     <string name="txt_increase_text_size">Increase text size</string>
     <string name="txt_decrease_text_size">Decrease text size</string>
+    <string name="menu_export_note">Export as text file…</string>
+    <string name="toast_note_exported">Note exported.</string>
+    <string name="toast_export_failed">Export failed.</string>
 </resources>
