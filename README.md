@@ -1,6 +1,6 @@
 # Simple Android Notes App
 
-No internet access, no ads, no in-app purchases. It just stores your notes on your phone.
+No internet access, no permissions, no ads, no in-app purchases. It just stores your notes on your phone.
 
 ## Features
 
