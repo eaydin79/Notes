@@ -28,5 +28,12 @@
         android:orderInCategory="103"
         android:showAsAction="never"
         tools:ignore="AppCompatResource" />
-
+    <item
+        android:id="@+id/action_import"
+        android:title="@string/menu_import_note"
+        android:enabled="true"
+        android:visible="false"
+        android:orderInCategory="104"
+        android:showAsAction="never"
+        tools:ignore="AppCompatResource" />
 </menu>

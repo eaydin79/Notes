@@ -9,8 +9,13 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Toolbar;
 import android.widget.Toast;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 public class TextNoteActivity extends Activity {
 
     private static final int REQUEST_EXPORT = 100;
+    private static final int REQUEST_IMPORT = 101;
     private EditText editNoteName;
     private NoteEditText noteEditText;
     private NoteManager noteManager;
@@ -29,6 +35,25 @@ public class TextNoteActivity extends Activity {
     private Intent intentNote;
     private SeekBar seekTextSize;
     private LinearLayout layoutTextSize;
+
+    private String getFileDisplayName(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor == null || !cursor.moveToFirst()) return "";
+            String name = cursor.getString(0);
+            if (name == null) return "";
+            int dot = name.lastIndexOf('.'); // strip the extension, e.g. "shopping.txt" -> "shopping"
+            if (dot > 0) name = name.substring(0, dot);
+            return name.trim();
+        } catch (Exception ignored) {}
+        return "";
+    }
+
+    private void importNote() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/*");
+        startActivityForResult(intent, REQUEST_IMPORT);
+    }
 
     private void exportNote() {
         String name = editNoteName.getText().toString().trim();
@@ -45,15 +70,40 @@ public class TextNoteActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQUEST_EXPORT || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
 
-        // "wt" = write + truncate, so overwriting an existing file doesn't leave old trailing text
-        try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
-            if (out == null) throw new IOException("Cannot open output stream");
-            out.write(noteEditText.getNoteData().getBytes(StandardCharsets.UTF_8));
-            Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+        switch (requestCode) {
+            case REQUEST_EXPORT:
+                // "wt" = write + truncate, so overwriting an existing file doesn't leave old trailing text
+                try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
+                    if (out == null) throw new IOException("Cannot open output stream");
+                    out.write(noteEditText.getNoteData().getBytes(StandardCharsets.UTF_8));
+                    Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case REQUEST_IMPORT:
+                Uri uri = data.getData();
+                try (InputStream in = getContentResolver().openInputStream(uri)) {
+                    if (in == null) throw new IOException("Cannot open input stream");
+                    InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
+                    char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // the extra char lets the length filter show its "limit reached" message.
+                    int total = 0, read;
+                    while (total < buffer.length && (read = reader.read(buffer, total, buffer.length - total)) != -1) total += read;
+                    noteEditText.setText(buffer, 0, total);
+
+                    String noteName = getFileDisplayName(uri);
+                    if (noteName.isEmpty()) noteName = getString(R.string.new_text);
+                    if (noteName.length() > 128) noteName = noteName.substring(0, 128); // matches editName maxLength in the XML
+                    editNoteName.setText(noteName.isEmpty() ? getString(R.string.new_text) : noteName);
+
+                    noteFile = null; // prevent loading the previously saved note in onResume
+                    Toast.makeText(this, R.string.toast_note_imported, Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
+                }
+                break;
         }
     }
 
@@ -97,6 +147,7 @@ public class TextNoteActivity extends Activity {
             if (item.getItemId() == R.id.action_text_size) showTextSizeLayout();
             if (item.getItemId() == R.id.action_backups) showHistory();
             if (item.getItemId() == R.id.action_export) exportNote();
+            if (item.getItemId() == R.id.action_import) importNote();
             return false;
         });
     }
@@ -113,6 +164,7 @@ public class TextNoteActivity extends Activity {
     protected void onResume() {
         super.onResume();
         loadNote();
+        menu.findItem(R.id.action_import).setVisible(editable);
         menu.findItem(R.id.action_backups)
             .setVisible(fileType != NoteManager.BACKUP_FILE)
             .setEnabled(noteManager.hasBackup(note.getId()));

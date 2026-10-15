@@ -54,4 +54,7 @@
     <string name="menu_export_note">Export as text file…</string>
     <string name="toast_note_exported">Note exported.</string>
     <string name="toast_export_failed">Export failed.</string>
+    <string name="menu_import_note">Import from text file…</string>
+    <string name="toast_note_imported">Text imported.</string>
+    <string name="toast_import_failed">Import failed.</string>
 </resources>
