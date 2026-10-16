@@ -18,8 +18,11 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
+
+import androidx.annotation.StringRes;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,8 +36,13 @@ import java.nio.charset.StandardCharsets;
 
 public class ChecklistNoteActivity extends Activity {
 
+    private static final int MSG_NONE = 0;
+    private static final int MSG_TOAST = 1;
+    private static final int MSG_LAYOUT = 2;
     private EditText editNoteName;
     private LinearLayout layoutItems;
+    private LinearLayout layoutMsg;
+    private TextView txtMsg;
     private NoteManager noteManager;
     private Note note;
     private Menu menu;
@@ -48,6 +56,7 @@ public class ChecklistNoteActivity extends Activity {
     private boolean scrollToBottom = false;
     private static final int REQUEST_EXPORT = 100;
     private static final int REQUEST_IMPORT = 101;
+    private boolean msgVisible = false;
 
     private String getFileDisplayName(Uri uri) {
         try (Cursor cursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
@@ -120,9 +129,9 @@ public class ChecklistNoteActivity extends Activity {
                 try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
                     if (out == null) throw new IOException("Cannot open output stream");
                     out.write(buildExportText().getBytes(StandardCharsets.UTF_8));
-                    Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
+                    showMessageLayout(R.string.toast_note_exported);
                 } catch (IOException e) {
-                    Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+                    showMessageLayout(R.string.toast_export_failed);
                 }
                 break;
             case REQUEST_IMPORT:
@@ -144,14 +153,36 @@ public class ChecklistNoteActivity extends Activity {
                         itemList.add(item);
                     }
                 } catch (IOException e) {
-                    Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
+                    showMessageLayout(R.string.msg_import_negative);
                     return;
                 }
-                if (limitReached) Toast.makeText(this, R.string.toast_import_limit, Toast.LENGTH_SHORT).show();
-                saveNote(getFileDisplayName(uri), itemList);
+
+                saveNote(getFileDisplayName(uri),
+                        itemList,
+                        MSG_LAYOUT,
+                        limitReached ? R.string.msg_import_item_limit : R.string.msg_import_positive,
+                        limitReached ? R.string.msg_import_item_limit : R.string.msg_import_neutral
+                );
+
                 break;
         }
 
+    }
+
+    private void showMessageLayout(@StringRes int msg) {
+        msgVisible = true;
+        txtMsg.setText(msg);
+        layoutMsg.setVisibility(LinearLayout.VISIBLE);
+        layoutMsg.setAlpha(1f);
+        layoutMsg.animate()
+                .alpha(0f)
+                .setStartDelay(1000)
+                .setDuration(1000)
+                .withEndAction( () -> {
+                    layoutMsg.setVisibility(LinearLayout.GONE);
+                    msgVisible = false;
+                } )
+                .start();
     }
 
     private void addItemLayouts() {
@@ -229,25 +260,30 @@ public class ChecklistNoteActivity extends Activity {
         setSelection(selectedCount);
     }
 
-    private void saveNote(String noteName, List<NoteItem> itemList) {
+    private void saveNote(String noteName, List<NoteItem> itemList, int msgType, int positiveMsg, int neutralMsg) {
         if (noteName.length() > 128) noteName = noteName.substring(0, 128);
         note.setName(noteName.trim().isEmpty() ? getString(R.string.new_text) : noteName.trim());
         note.setItems(itemList);
         if (note.isModified()) {
             noteFile = noteManager.saveNote(note);
             intentNote.putExtra("noteFile", noteFile);
+            if (msgType == MSG_LAYOUT) showMessageLayout(positiveMsg);
+            if (msgType == MSG_TOAST) Toast.makeText(this, positiveMsg, Toast.LENGTH_SHORT).show();
+        } else {
+            if (msgType == MSG_LAYOUT && neutralMsg != 0) showMessageLayout(neutralMsg);
+            if (msgType == MSG_TOAST && neutralMsg != 0) Toast.makeText(this, neutralMsg, Toast.LENGTH_SHORT).show();
         }
     }
 
     private void addNewItem(String text) {
         addItemLayout(new NoteItem(text.isEmpty() ? getString(R.string.new_item) : text, false));
         scrollToBottom = true;
-        Toast.makeText(this, R.string.toast_item_added, Toast.LENGTH_SHORT).show();
+        showMessageLayout(R.string.toast_item_added);
     }
 
     private void addNewClick() {
         if (itemLayoutList.size() >= NotePreferences.MAX_ITEM_COUNT) {
-            Toast.makeText(this, R.string.max_item_count_msg, Toast.LENGTH_SHORT).show();
+            showMessageLayout(R.string.max_item_count_msg);
             return;
         }
         EditText editText = new EditText(this);
@@ -313,7 +349,7 @@ public class ChecklistNoteActivity extends Activity {
                     selectedLayout.setItem(new NoteItem(text.isEmpty() ? getString(R.string.new_item) : text, selectedLayout.getItem().isChecked()));
                     selectedLayout.deSelect();
                     checkSelection();
-                    Toast.makeText(this, R.string.toast_item_changed, Toast.LENGTH_SHORT).show();
+                    showMessageLayout(R.string.toast_item_changed);
                 })
                 .setNegativeButton(R.string.btn_cancel, (dialogInterface, i) -> dialogInterface.cancel())
                 .create();
@@ -390,6 +426,13 @@ public class ChecklistNoteActivity extends Activity {
         if (note == null) return;
         editNoteName.setText(note.getName());
     }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if (!msgVisible) layoutMsg.setVisibility(LinearLayout.GONE);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -405,7 +448,7 @@ public class ChecklistNoteActivity extends Activity {
         if (editable) {
             List<NoteItem> itemList = new ArrayList<>();
             for (ItemLayout itemLayout: itemLayoutList) itemList.add(itemLayout.getItem());
-            saveNote(editNoteName.getText().toString(), itemList);
+            saveNote(editNoteName.getText().toString(), itemList, MSG_TOAST, R.string.msg_note_saved, MSG_NONE);
         }
         super.onPause();
     }
@@ -433,6 +476,8 @@ public class ChecklistNoteActivity extends Activity {
         editable = intentNote.getBooleanExtra("editable", true);
         setToolbar();
         editNoteName.setEnabled(editable);
+        layoutMsg = findViewById(R.id.layout_msg);
+        txtMsg = findViewById(R.id.txtMsg);
         layoutItems = findViewById(R.id.layout_items);
         setScrollListener();
 

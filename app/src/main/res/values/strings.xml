@@ -30,12 +30,10 @@
     <string name="menu_restore_note">Restore</string>
     <string name="txt_note_history">Note history</string>
     <string name="toast_backup_restore">Backup restored.</string>
-    <string name="toast_note_saved">Note saved.</string>
+    <string name="msg_note_saved">Note saved.</string>
     <string name="toast_item_added">Item added.</string>
     <string name="toast_item_changed">Item changed.</string>
     <string name="toast_max_note_count">Maximum note count reached.</string>
-    <string name="max_char_count_msg_short">Character limit reached.</string>
-    <string name="max_char_count_msg_long">Some text may have been left out.</string>
     <string name="max_item_count_msg">Max item count reached!</string>
     <string name="btn_confirm">Hold to confirm</string>
     <string name="confirm_dialog_title">Delete permanently?</string>
@@ -54,6 +52,9 @@
     <string name="toast_note_exported">Note exported.</string>
     <string name="toast_export_failed">Export failed.</string>
     <string name="menu_import_note">Import from text file…</string>
-    <string name="toast_import_failed">Import failed.</string>
-    <string name="toast_import_limit">Some items were left out (limit reached).</string>
+    <string name="msg_import_negative">Import failed.</string>
+    <string name="msg_import_positive">Note imported and saved.</string>
+    <string name="msg_import_neutral">Note imported.</string>
+    <string name="msg_import_item_limit">Item limit reached! Some items were left out.</string>
+    <string name="msg_max_char_count">Character limit reached! Some text may have been left out.</string>
 </resources>

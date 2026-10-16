@@ -38,22 +38,56 @@
 
     </Toolbar>
 
-    <ScrollView
-        android:id="@+id/scrollItems"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:importantForAccessibility="no"
-        android:background="@color/white">
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:id="@+id/scrollItems"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:background="@color/white">
+            <LinearLayout
+                android:id="@+id/layout_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="true"
+                android:paddingHorizontal="4dp"
+                android:orientation="vertical" />
+        </ScrollView>
 
         <LinearLayout
-            android:id="@+id/layout_items"
-            android:layout_width="match_parent"
+            android:id="@+id/layout_msg"
+            android:visibility="visible"
+            android:saveEnabled="false"
+            android:background="@drawable/msg_background"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:paddingHorizontal="4dp"
-            android:orientation="vertical" />
+            android:orientation="horizontal"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_margin="16dp"
+            android:gravity="center"
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="16dp">
 
-    </ScrollView>
+            <TextView
+                android:id="@+id/txtMsg"
+                android:drawableStart="@drawable/ic_info"
+                android:drawablePadding="8dp"
+                android:contentDescription="@string/msg_import_item_limit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:text="@string/msg_import_item_limit" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
 
 
 </LinearLayout>

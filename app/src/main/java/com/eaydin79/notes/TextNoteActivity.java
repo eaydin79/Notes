@@ -3,15 +3,19 @@ package com.eaydin79.notes;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.Menu;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
-import android.widget.Toolbar;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+
+import androidx.annotation.StringRes;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +28,9 @@ public class TextNoteActivity extends Activity {
 
     private static final int REQUEST_EXPORT = 100;
     private static final int REQUEST_IMPORT = 101;
+    private static final int MSG_NONE = 0;
+    private static final int MSG_TOAST = 1;
+    private static final int MSG_LAYOUT = 2;
     private EditText editNoteName;
     private NoteEditText noteEditText;
     private NoteManager noteManager;
@@ -35,6 +42,9 @@ public class TextNoteActivity extends Activity {
     private Intent intentNote;
     private SeekBar seekTextSize;
     private LinearLayout layoutTextSize;
+    private LinearLayout layoutMsg;
+    private TextView txtMsg;
+    private boolean msgVisible = false;
 
     private String getFileDisplayName(Uri uri) {
         try (Cursor cursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
@@ -78,9 +88,9 @@ public class TextNoteActivity extends Activity {
                 try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
                     if (out == null) throw new IOException("Cannot open output stream");
                     out.write(noteEditText.getNoteData().getBytes(StandardCharsets.UTF_8));
-                    Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
+                    showMessageLayout(R.string.toast_note_exported);
                 } catch (IOException e) {
-                    Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+                    showMessageLayout(R.string.toast_export_failed);
                 }
                 break;
             case REQUEST_IMPORT:
@@ -91,22 +101,31 @@ public class TextNoteActivity extends Activity {
                     char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // the extra char lets the length filter show its "limit reached" message.
                     int total = 0, read;
                     while (total < buffer.length && (read = reader.read(buffer, total, buffer.length - total)) != -1) total += read;
-                    if (total > NotePreferences.MAX_CHAR_COUNT) Toast.makeText(this, R.string.max_char_count_msg_long, Toast.LENGTH_SHORT).show();
-                    saveNote(getFileDisplayName(uri), new String(buffer, 0, total));
+                    saveNote(getFileDisplayName(uri),
+                            new String(buffer, 0, total),
+                            MSG_LAYOUT,
+                            total > NotePreferences.MAX_CHAR_COUNT ? R.string.msg_max_char_count : R.string.msg_import_positive,
+                            total > NotePreferences.MAX_CHAR_COUNT ? R.string.msg_max_char_count : R.string.msg_import_neutral
+                            );
                 } catch (IOException e) {
-                    Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
+                    showMessageLayout(R.string.msg_import_negative);
                 }
                 break;
         }
     }
 
-    private void saveNote(String noteName, String noteData) {
+    private void saveNote(String noteName, String noteData, int msgType, int positiveMsg, int neutralMsg) {
         if (noteName.length() > 128) noteName = noteName.substring(0, 128);
         note.setName(noteName.trim().isEmpty() ? getString(R.string.new_text) : noteName.trim());
         note.setData(noteData);
         if (note.isModified()) {
             noteFile = noteManager.saveNote(note);
             intentNote.putExtra("noteFile", noteFile);
+            if (msgType == MSG_LAYOUT) showMessageLayout(positiveMsg);
+            if (msgType == MSG_TOAST) Toast.makeText(this, positiveMsg, Toast.LENGTH_SHORT).show();
+        } else {
+            if (msgType == MSG_LAYOUT && neutralMsg != 0) showMessageLayout(neutralMsg);
+            if (msgType == MSG_TOAST && neutralMsg != 0) Toast.makeText(this, neutralMsg, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -121,6 +140,23 @@ public class TextNoteActivity extends Activity {
             case NoteManager.TRASH_FILE: noteFile = getFilesDir() + "/trash/" + note.getId(); break;
         }
     }
+
+    private void showMessageLayout(@StringRes int msg) {
+        msgVisible = true;
+        txtMsg.setText(msg);
+        layoutMsg.setVisibility(LinearLayout.VISIBLE);
+        layoutMsg.setAlpha(1f);
+        layoutMsg.animate()
+                .alpha(0f)
+                .setStartDelay(1000)
+                .setDuration(1000)
+                .withEndAction( () -> {
+                    layoutMsg.setVisibility(LinearLayout.GONE);
+                    msgVisible = false;
+                } )
+                .start();
+    }
+
 
     private void showTextSizeLayout() {
         layoutTextSize.setVisibility(LinearLayout.VISIBLE);
@@ -167,13 +203,14 @@ public class TextNoteActivity extends Activity {
     @Override
     protected void onPostResume() {
         super.onPostResume();
+        if (!msgVisible) layoutMsg.setVisibility(LinearLayout.GONE);
         layoutTextSize.setVisibility(LinearLayout.GONE);
         seekTextSize.setProgress(noteEditText.getTextSizeScale());
     }
 
     @Override
     protected void onPause() {
-        if (editable) saveNote(editNoteName.getText().toString(), noteEditText.getNoteData());
+        if (editable) saveNote(editNoteName.getText().toString(), noteEditText.getNoteData(), MSG_TOAST, R.string.msg_note_saved, MSG_NONE);
         super.onPause();
     }
 
@@ -221,6 +258,10 @@ public class TextNoteActivity extends Activity {
         setToolbar();
         editNoteName.setEnabled(editable);
         noteEditText.setEnabled(editable);
+
+        layoutMsg = findViewById(R.id.layout_msg);
+        txtMsg = findViewById(R.id.txtMsg);
+        if (editable) noteEditText.setFilters(new InputFilter[] {new NotifyingLengthFilter(NotePreferences.MAX_CHAR_COUNT, () -> showMessageLayout(R.string.msg_max_char_count))});
 
         noteFile = null; // prevent loading the note again in onResume
 

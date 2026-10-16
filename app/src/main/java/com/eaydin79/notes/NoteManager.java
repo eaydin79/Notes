@@ -2,7 +2,6 @@ package com.eaydin79.notes;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONException;
 
@@ -27,11 +26,9 @@ public class NoteManager {
     private final File notesDir;
     private final File historyDir;
     private final File trashDir;
-    private final Context context;
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public NoteManager(Context context) {
-        this.context = context;
         File filesDir = context.getFilesDir();
         notesDir = new File(filesDir, "notes");
         historyDir = new File(filesDir, "history");
@@ -49,7 +46,6 @@ public class NoteManager {
             FileOutputStream fileOutputStream = new FileOutputStream(noteFile);
             fileOutputStream.write(note.getBytes());
             fileOutputStream.close();
-            Toast.makeText(context, context.getString(R.string.toast_note_saved), Toast.LENGTH_SHORT).show();
             note.save();
             return noteFile.toString();
         } catch (IOException e) {

@@ -70,6 +70,34 @@
         </ScrollView>
 
         <LinearLayout
+            android:id="@+id/layout_msg"
+            android:visibility="visible"
+            android:saveEnabled="false"
+            android:background="@drawable/msg_background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_margin="16dp"
+            android:gravity="center"
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/txtMsg"
+                android:drawableStart="@drawable/ic_info"
+                android:drawablePadding="8dp"
+                android:contentDescription="@string/msg_max_char_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:text="@string/msg_max_char_count" />
+
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/layout_text_size"
             android:visibility="visible"
             android:saveEnabled="false"

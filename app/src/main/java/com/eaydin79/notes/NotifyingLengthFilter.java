@@ -7,6 +7,7 @@ public class NotifyingLengthFilter implements InputFilter {
 
     private final int maxLength;
     private final Runnable onTruncated;
+
     public NotifyingLengthFilter(int maxLength, Runnable onTruncated) {
         this.maxLength = maxLength;
         this.onTruncated = onTruncated;
