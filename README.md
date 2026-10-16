@@ -12,7 +12,7 @@ No internet access, no permissions, no ads, no in-app purchases. It just stores 
 
 ## Installing
 
-1. Download the latest APK from the [Releases page](https://github.com/eaydin79/Notes/releases/latest).
+1. Download the APK from [Latest Release](https://github.com/eaydin79/Notes/releases/latest).
 2. Open the downloaded file on your phone.
 3. If Android asks, allow your browser or file manager to install unknown apps, then tap **Install**.
 
