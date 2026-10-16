@@ -147,9 +147,8 @@ public class ChecklistNoteActivity extends Activity {
                     Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                if (limitReached) Toast.makeText(this, R.string.toast_import_limit, Toast.LENGTH_SHORT).show();
                 saveNote(getFileDisplayName(uri), itemList);
-                Toast.makeText(this, limitReached ? R.string.toast_import_limit : R.string.toast_note_imported, Toast.LENGTH_SHORT).show();
                 break;
         }
 

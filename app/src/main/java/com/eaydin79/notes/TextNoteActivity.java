@@ -91,8 +91,8 @@ public class TextNoteActivity extends Activity {
                     char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // the extra char lets the length filter show its "limit reached" message.
                     int total = 0, read;
                     while (total < buffer.length && (read = reader.read(buffer, total, buffer.length - total)) != -1) total += read;
+                    if (total > NotePreferences.MAX_CHAR_COUNT) Toast.makeText(this, R.string.max_char_count_msg_long, Toast.LENGTH_SHORT).show();
                     saveNote(getFileDisplayName(uri), new String(buffer, 0, total));
-                    Toast.makeText(this, R.string.toast_note_imported, Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
                     Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
                 }
