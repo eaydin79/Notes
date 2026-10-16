@@ -1,16 +1,20 @@
 package com.eaydin79.notes;
 
+import android.animation.LayoutTransition;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.view.Menu;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
@@ -35,7 +39,7 @@ public class ChecklistNoteActivity extends Activity {
     private boolean editable;
     private String noteFile;
     private Intent intentNote;
-
+    private boolean scrollToBottom = false;
     private static final int REQUEST_EXPORT = 100;
 
     private String buildExportText() {
@@ -160,6 +164,12 @@ public class ChecklistNoteActivity extends Activity {
         }
     }
 
+    private void addNewItem(String text) {
+        addItemLayout(new NoteItem(text.isEmpty() ? getString(R.string.new_item) : text, false));
+        scrollToBottom = true;
+        Toast.makeText(this, R.string.toast_item_added, Toast.LENGTH_SHORT).show();
+    }
+
     private void addNewClick() {
         if (itemLayoutList.size() >= NotePreferences.MAX_ITEM_COUNT) {
             Toast.makeText(this, R.string.max_item_count_msg, Toast.LENGTH_SHORT).show();
@@ -177,11 +187,7 @@ public class ChecklistNoteActivity extends Activity {
                 .setIcon(R.drawable.ic_action_add_new)
                 .setView(editText)
                 .setCancelable(true)
-                .setPositiveButton(R.string.btn_ok, (dialogInterface, i) -> {
-                    String text = editText.getText().toString().trim();
-                    addItemLayout(new NoteItem(text.isEmpty() ? getString(R.string.new_item) : text, false));
-                    Toast.makeText(this, R.string.toast_item_added, Toast.LENGTH_SHORT).show();
-                })
+                .setPositiveButton(R.string.btn_ok, (dialogInterface, i) -> addNewItem(editText.getText().toString().trim()))
                 .setNeutralButton(getString(R.string.btn_add_another), null)
                 .setNegativeButton(R.string.btn_cancel, (dialogInterface, i) -> dialogInterface.cancel())
                 .create();
@@ -200,10 +206,7 @@ public class ChecklistNoteActivity extends Activity {
             if (neutralBtn != null) {
                 neutralBtn.setEnabled(itemLayoutList.size() < NotePreferences.MAX_ITEM_COUNT-1);
                 neutralBtn.setOnClickListener(v -> {
-                    String text = editText.getText().toString().trim();
-                    String itemName = text.isEmpty() ? getString(R.string.new_item) : text;
-                    addItemLayout(new NoteItem(itemName, false));
-                    Toast.makeText(this, R.string.toast_item_added, Toast.LENGTH_SHORT).show();
+                    addNewItem(editText.getText().toString().trim());
                     editText.setText("");
                     neutralBtn.setEnabled(itemLayoutList.size() < NotePreferences.MAX_ITEM_COUNT-1);
                 });
@@ -232,7 +235,7 @@ public class ChecklistNoteActivity extends Activity {
                 .setCancelable(true)
                 .setPositiveButton(R.string.btn_ok, (dialogInterface, i) -> {
                     String text = editText.getText().toString().trim();
-                    selectedLayout.setItem(new NoteItem(text.isEmpty() ? getString(R.string.new_item) : text, false));
+                    selectedLayout.setItem(new NoteItem(text.isEmpty() ? getString(R.string.new_item) : text, selectedLayout.getItem().isChecked()));
                     selectedLayout.deSelect();
                     checkSelection();
                     Toast.makeText(this, R.string.toast_item_changed, Toast.LENGTH_SHORT).show();
@@ -257,6 +260,24 @@ public class ChecklistNoteActivity extends Activity {
         if (window != null) window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         alertDialog.show();
 
+    }
+
+    private void setScrollListener() {
+        ScrollView scrollItems = findViewById(R.id.scrollItems);
+        LayoutTransition transition = layoutItems.getLayoutTransition();
+        if (transition != null) {
+            transition.addTransitionListener(new LayoutTransition.TransitionListener() {
+                @Override
+                public void endTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType) {
+                    if (scrollToBottom && transitionType == LayoutTransition.APPEARING) {
+                        scrollToBottom = false;
+                        scrollItems.fullScroll(View.FOCUS_DOWN);
+                    }
+                }
+                @Override public void startTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType) { }
+            });
+
+        }
     }
 
     private void showHistory() {
@@ -333,9 +354,12 @@ public class ChecklistNoteActivity extends Activity {
         setToolbar();
         editNoteName.setEnabled(editable);
         layoutItems = findViewById(R.id.layout_items);
+        setScrollListener();
 
         noteFile = null; // prevent loading note again in onResume
 
     }
+
+
 
 }
