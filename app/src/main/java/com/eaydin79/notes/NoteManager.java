@@ -49,8 +49,8 @@ public class NoteManager {
             FileOutputStream fileOutputStream = new FileOutputStream(noteFile);
             fileOutputStream.write(note.getBytes());
             fileOutputStream.close();
-            note.save();
             Toast.makeText(context, context.getString(R.string.toast_note_saved), Toast.LENGTH_SHORT).show();
+            note.save();
             return noteFile.toString();
         } catch (IOException e) {
             Log.e("NotePreferences", "saveNote: " + e);
@@ -115,13 +115,13 @@ public class NoteManager {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void addBackup(Note note) throws IOException {
+
         File backupDir = new File(historyDir, note.getId());
         File noteFile = new File(notesDir, note.getId());
-        if (!noteFile.exists()) {
-            backupDir.mkdirs();
-            return;
-        }
-        Files.copy( noteFile.toPath(), new File(backupDir, note.getBackupFileName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+        if (!noteFile.exists()) { backupDir.mkdirs(); return; }
+        Files.copy( noteFile.toPath(), new File(backupDir, note.getBackupFileName()).toPath(), StandardCopyOption.REPLACE_EXISTING );
+
+        // delete oldest backup
         final String[] exception = {""};
         Executors.newSingleThreadExecutor().execute( ()-> {
             try {

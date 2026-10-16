@@ -91,14 +91,7 @@ public class TextNoteActivity extends Activity {
                     char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // the extra char lets the length filter show its "limit reached" message.
                     int total = 0, read;
                     while (total < buffer.length && (read = reader.read(buffer, total, buffer.length - total)) != -1) total += read;
-                    noteEditText.setText(buffer, 0, total);
-
-                    String noteName = getFileDisplayName(uri);
-                    if (noteName.isEmpty()) noteName = getString(R.string.new_text);
-                    if (noteName.length() > 128) noteName = noteName.substring(0, 128); // matches editName maxLength in the XML
-                    editNoteName.setText(noteName.isEmpty() ? getString(R.string.new_text) : noteName);
-
-                    noteFile = null; // prevent loading the previously saved note in onResume
+                    saveNote(getFileDisplayName(uri), new String(buffer, 0, total));
                     Toast.makeText(this, R.string.toast_note_imported, Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
                     Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
@@ -107,9 +100,10 @@ public class TextNoteActivity extends Activity {
         }
     }
 
-    private void saveNote() {
-        note.setName(editNoteName.getText().toString().trim().isEmpty() ? getString(R.string.new_text) : editNoteName.getText().toString().trim());
-        note.setData(noteEditText.getNoteData());
+    private void saveNote(String noteName, String noteData) {
+        if (noteName.length() > 128) noteName = noteName.substring(0, 128);
+        note.setName(noteName.trim().isEmpty() ? getString(R.string.new_text) : noteName.trim());
+        note.setData(noteData);
         if (note.isModified()) {
             noteFile = noteManager.saveNote(note);
             intentNote.putExtra("noteFile", noteFile);
@@ -179,7 +173,7 @@ public class TextNoteActivity extends Activity {
 
     @Override
     protected void onPause() {
-        if (editable) saveNote();
+        if (editable) saveNote(editNoteName.getText().toString(), noteEditText.getNoteData());
         super.onPause();
     }
 

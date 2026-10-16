@@ -18,7 +18,7 @@ public class Note {
     public static final int TYPE_CHECKLIST = 1;
     private final JSONObject jsonObject;
     private String initialName;
-    private final long initialTime;
+    private long initialTime;
     private String initialData;
     private JSONArray initialItems;
 
@@ -160,6 +160,7 @@ public class Note {
     }
 
     public void save() {
+        initialTime = getTime();
         initialName = getName();
         initialData = getData();
         initialItems = getItemArray();

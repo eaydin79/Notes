@@ -4,7 +4,10 @@ import android.animation.LayoutTransition;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.text.InputFilter;
 import android.view.Menu;
 import android.view.View;
@@ -18,7 +21,10 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
@@ -41,6 +47,45 @@ public class ChecklistNoteActivity extends Activity {
     private Intent intentNote;
     private boolean scrollToBottom = false;
     private static final int REQUEST_EXPORT = 100;
+    private static final int REQUEST_IMPORT = 101;
+
+    private String getFileDisplayName(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor == null || !cursor.moveToFirst()) return "";
+            String name = cursor.getString(0);
+            if (name == null) return "";
+            int dot = name.lastIndexOf('.'); // strip the extension, e.g. "shopping.txt" -> "shopping"
+            if (dot > 0) name = name.substring(0, dot);
+            return name.trim();
+        } catch (Exception ignored) {}
+        return "";
+    }
+
+    private void importNote() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/*");
+        startActivityForResult(intent, REQUEST_IMPORT);
+    }
+
+    /** Parses lines like "[x] text" / "[ ] text". Lines without the prefix become unchecked items. */
+    private NoteItem parseLine(String line) {
+        String trimmed = line.trim();
+        boolean checked = false;
+        String text = trimmed;
+        if (trimmed.length() >= 3 && trimmed.charAt(0) == '[' && trimmed.charAt(2) == ']') {
+            char mark = trimmed.charAt(1);
+            if (mark == 'x' || mark == 'X') {
+                checked = true;
+                text = trimmed.substring(3).trim();
+            } else if (mark == ' ') {
+                text = trimmed.substring(3).trim();
+            }
+        }
+        if (text.length() > NotePreferences.MAX_ITEM_CHAR_COUNT)
+            text = text.substring(0, NotePreferences.MAX_ITEM_CHAR_COUNT);
+        return text.isEmpty() ? null : new NoteItem(text, checked);
+    }
 
     private String buildExportText() {
         StringBuilder sb = new StringBuilder();
@@ -68,15 +113,46 @@ public class ChecklistNoteActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQUEST_EXPORT || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
 
-        try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
-            if (out == null) throw new IOException("Cannot open output stream");
-            out.write(buildExportText().getBytes(StandardCharsets.UTF_8));
-            Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+        switch (requestCode) {
+            case REQUEST_EXPORT:
+                try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
+                    if (out == null) throw new IOException("Cannot open output stream");
+                    out.write(buildExportText().getBytes(StandardCharsets.UTF_8));
+                    Toast.makeText(this, R.string.toast_note_exported, Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Toast.makeText(this, R.string.toast_export_failed, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case REQUEST_IMPORT:
+                Uri uri = data.getData();
+                List<NoteItem> itemList = new ArrayList<>();
+                boolean limitReached = false;
+
+                try (InputStream in = getContentResolver().openInputStream(uri)) {
+                    if (in == null) throw new IOException("Cannot open input stream");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        NoteItem item = parseLine(line);
+                        if (item == null) continue;
+                        if (itemList.size() >= NotePreferences.MAX_ITEM_COUNT) {
+                            limitReached = true;
+                            break;
+                        }
+                        itemList.add(item);
+                    }
+                } catch (IOException e) {
+                    Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                saveNote(getFileDisplayName(uri), itemList);
+                Toast.makeText(this, limitReached ? R.string.toast_import_limit : R.string.toast_note_imported, Toast.LENGTH_SHORT).show();
+                break;
         }
+
     }
 
     private void addItemLayouts() {
@@ -127,6 +203,7 @@ public class ChecklistNoteActivity extends Activity {
             menu.findItem(R.id.action_edit).setVisible(selectedCount == 1);
             menu.findItem(R.id.action_select_none).setVisible(true).setEnabled(selectedCount > 0);
             menu.findItem(R.id.action_select_all).setVisible(true).setEnabled(selectedCount != itemLayoutList.size());
+            menu.findItem(R.id.action_import).setVisible(true);
         }
         menu.findItem(R.id.action_backups)
                 .setVisible(fileType != NoteManager.BACKUP_FILE)
@@ -153,10 +230,9 @@ public class ChecklistNoteActivity extends Activity {
         setSelection(selectedCount);
     }
 
-    private void saveNote() {
-        note.setName(editNoteName.getText().toString().trim().isEmpty() ? getString(R.string.new_list) : editNoteName.getText().toString().trim());
-        List<NoteItem> itemList = new ArrayList<>();
-        for (ItemLayout itemLayout: itemLayoutList) itemList.add(itemLayout.getItem());
+    private void saveNote(String noteName, List<NoteItem> itemList) {
+        if (noteName.length() > 128) noteName = noteName.substring(0, 128);
+        note.setName(noteName.trim().isEmpty() ? getString(R.string.new_text) : noteName.trim());
         note.setItems(itemList);
         if (note.isModified()) {
             noteFile = noteManager.saveNote(note);
@@ -304,6 +380,7 @@ public class ChecklistNoteActivity extends Activity {
             if (item.getItemId() == R.id.action_select_none) selectNoneLayout();
             if (item.getItemId() == R.id.action_backups) showHistory();
             if (item.getItemId() == R.id.action_export) exportNote();
+            if (item.getItemId() == R.id.action_import) importNote();
             return false;
         });
     }
@@ -326,7 +403,11 @@ public class ChecklistNoteActivity extends Activity {
     @Override
     protected void onPause() {
         if (selectedCount>0) setSelection(0);
-        if (editable) saveNote();
+        if (editable) {
+            List<NoteItem> itemList = new ArrayList<>();
+            for (ItemLayout itemLayout: itemLayoutList) itemList.add(itemLayout.getItem());
+            saveNote(editNoteName.getText().toString(), itemList);
+        }
         super.onPause();
     }
 
