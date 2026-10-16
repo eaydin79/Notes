@@ -8,7 +8,7 @@ No internet access, no permissions, no ads, no in-app purchases. It just stores 
 - Adjustable text size
 - Automatic note history with restore
 - Trash for deleted notes
-- Export notes as text files
+- Import, export notes
 
 ## Installing
 
