@@ -9,7 +9,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.Toolbar;
 import android.database.Cursor;
 import android.net.Uri;
@@ -28,9 +27,6 @@ public class TextNoteActivity extends Activity {
 
     private static final int REQUEST_EXPORT = 100;
     private static final int REQUEST_IMPORT = 101;
-    private static final int MSG_NONE = 0;
-    private static final int MSG_TOAST = 1;
-    private static final int MSG_LAYOUT = 2;
     private EditText editNoteName;
     private NoteEditText noteEditText;
     private NoteManager noteManager;
@@ -101,31 +97,22 @@ public class TextNoteActivity extends Activity {
                     char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // the extra char lets the length filter show its "limit reached" message.
                     int total = 0, read;
                     while (total < buffer.length && (read = reader.read(buffer, total, buffer.length - total)) != -1) total += read;
-                    saveNote(getFileDisplayName(uri),
-                            new String(buffer, 0, total),
-                            MSG_LAYOUT,
-                            total > NotePreferences.MAX_CHAR_COUNT ? R.string.msg_max_char_count : R.string.msg_import_positive,
-                            total > NotePreferences.MAX_CHAR_COUNT ? R.string.msg_max_char_count : R.string.msg_import_neutral
-                            );
+                    saveNote(getFileDisplayName(uri), new String(buffer, 0, total));
+                    showMessageLayout(total > NotePreferences.MAX_CHAR_COUNT ? R.string.msg_max_char_count : R.string.msg_import);
                 } catch (IOException e) {
-                    showMessageLayout(R.string.msg_import_negative);
+                    showMessageLayout(R.string.msg_import_fail);
                 }
                 break;
         }
     }
 
-    private void saveNote(String noteName, String noteData, int msgType, int positiveMsg, int neutralMsg) {
+    private void saveNote(String noteName, String noteData) {
         if (noteName.length() > 128) noteName = noteName.substring(0, 128);
         note.setName(noteName.trim().isEmpty() ? getString(R.string.new_text) : noteName.trim());
         note.setData(noteData);
         if (note.isModified()) {
             noteFile = noteManager.saveNote(note);
             intentNote.putExtra("noteFile", noteFile);
-            if (msgType == MSG_LAYOUT) showMessageLayout(positiveMsg);
-            if (msgType == MSG_TOAST) Toast.makeText(this, positiveMsg, Toast.LENGTH_SHORT).show();
-        } else {
-            if (msgType == MSG_LAYOUT && neutralMsg != 0) showMessageLayout(neutralMsg);
-            if (msgType == MSG_TOAST && neutralMsg != 0) Toast.makeText(this, neutralMsg, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -210,7 +197,7 @@ public class TextNoteActivity extends Activity {
 
     @Override
     protected void onPause() {
-        if (editable) saveNote(editNoteName.getText().toString(), noteEditText.getNoteData(), MSG_TOAST, R.string.msg_note_saved, MSG_NONE);
+        if (editable) saveNote(editNoteName.getText().toString(), noteEditText.getNoteData());
         super.onPause();
     }
 

@@ -52,9 +52,8 @@
     <string name="toast_note_exported">Note exported.</string>
     <string name="toast_export_failed">Export failed.</string>
     <string name="menu_import_note">Import from text file…</string>
-    <string name="msg_import_negative">Import failed.</string>
-    <string name="msg_import_positive">Note imported and saved.</string>
-    <string name="msg_import_neutral">Note imported.</string>
+    <string name="msg_import_fail">Import failed.</string>
+    <string name="msg_import">Note imported.</string>
     <string name="msg_import_item_limit">Item limit reached! Some items were left out.</string>
     <string name="msg_max_char_count">Character limit reached! Some text may have been left out.</string>
 </resources>

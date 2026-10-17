@@ -19,7 +19,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.Toolbar;
 
 import androidx.annotation.StringRes;
@@ -36,9 +35,6 @@ import java.nio.charset.StandardCharsets;
 
 public class ChecklistNoteActivity extends Activity {
 
-    private static final int MSG_NONE = 0;
-    private static final int MSG_TOAST = 1;
-    private static final int MSG_LAYOUT = 2;
     private EditText editNoteName;
     private LinearLayout layoutItems;
     private LinearLayout layoutMsg;
@@ -153,17 +149,12 @@ public class ChecklistNoteActivity extends Activity {
                         itemList.add(item);
                     }
                 } catch (IOException e) {
-                    showMessageLayout(R.string.msg_import_negative);
+                    showMessageLayout(R.string.msg_import_fail);
                     return;
                 }
 
-                saveNote(getFileDisplayName(uri),
-                        itemList,
-                        MSG_LAYOUT,
-                        limitReached ? R.string.msg_import_item_limit : R.string.msg_import_positive,
-                        limitReached ? R.string.msg_import_item_limit : R.string.msg_import_neutral
-                );
-
+                saveNote(getFileDisplayName(uri), itemList);
+                showMessageLayout(limitReached ? R.string.msg_import_item_limit : R.string.msg_import);
                 break;
         }
 
@@ -260,18 +251,13 @@ public class ChecklistNoteActivity extends Activity {
         setSelection(selectedCount);
     }
 
-    private void saveNote(String noteName, List<NoteItem> itemList, int msgType, int positiveMsg, int neutralMsg) {
+    private void saveNote(String noteName, List<NoteItem> itemList) {
         if (noteName.length() > 128) noteName = noteName.substring(0, 128);
         note.setName(noteName.trim().isEmpty() ? getString(R.string.new_text) : noteName.trim());
         note.setItems(itemList);
         if (note.isModified()) {
             noteFile = noteManager.saveNote(note);
             intentNote.putExtra("noteFile", noteFile);
-            if (msgType == MSG_LAYOUT) showMessageLayout(positiveMsg);
-            if (msgType == MSG_TOAST) Toast.makeText(this, positiveMsg, Toast.LENGTH_SHORT).show();
-        } else {
-            if (msgType == MSG_LAYOUT && neutralMsg != 0) showMessageLayout(neutralMsg);
-            if (msgType == MSG_TOAST && neutralMsg != 0) Toast.makeText(this, neutralMsg, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -448,7 +434,7 @@ public class ChecklistNoteActivity extends Activity {
         if (editable) {
             List<NoteItem> itemList = new ArrayList<>();
             for (ItemLayout itemLayout: itemLayoutList) itemList.add(itemLayout.getItem());
-            saveNote(editNoteName.getText().toString(), itemList, MSG_TOAST, R.string.msg_note_saved, MSG_NONE);
+            saveNote(editNoteName.getText().toString(), itemList);
         }
         super.onPause();
     }
