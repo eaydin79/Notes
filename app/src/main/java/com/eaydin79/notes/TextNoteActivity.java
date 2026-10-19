@@ -97,8 +97,8 @@ public class TextNoteActivity extends Activity {
                     char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // the extra char lets the length filter show its "limit reached" message.
                     int total = 0, read;
                     while (total < buffer.length && (read = reader.read(buffer, total, buffer.length - total)) != -1) total += read;
-                    saveNote(getFileDisplayName(uri), new String(buffer, 0, total));
                     showMessageLayout(total > NotePreferences.MAX_CHAR_COUNT ? R.string.msg_max_char_count : R.string.msg_import);
+                    saveNote(getFileDisplayName(uri), new String(buffer, 0, Math.min(total, NotePreferences.MAX_CHAR_COUNT)));
                 } catch (IOException e) {
                     showMessageLayout(R.string.msg_import_fail);
                 }

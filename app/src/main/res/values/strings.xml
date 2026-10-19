@@ -34,7 +34,7 @@
     <string name="toast_item_added">Item added.</string>
     <string name="toast_item_changed">Item changed.</string>
     <string name="toast_max_note_count">Maximum note count reached.</string>
-    <string name="max_item_count_msg">Max item count reached!</string>
+    <string name="max_item_count_msg">Maximum item count reached!</string>
     <string name="btn_confirm">Hold to confirm</string>
     <string name="confirm_dialog_title">Delete permanently?</string>
     <string name="confirm_dialog_msg">This cannot be undone!</string>
