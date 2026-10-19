@@ -94,7 +94,7 @@ public class TextNoteActivity extends Activity {
                 try (InputStream in = getContentResolver().openInputStream(uri)) {
                     if (in == null) throw new IOException("Cannot open input stream");
                     InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
-                    char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // the extra char lets the length filter show its "limit reached" message.
+                    char[] buffer = new char[NotePreferences.MAX_CHAR_COUNT + 1]; // extra char to detect and show "limit reached" message.
                     int total = 0, read;
                     while (total < buffer.length && (read = reader.read(buffer, total, buffer.length - total)) != -1) total += read;
                     showMessageLayout(total > NotePreferences.MAX_CHAR_COUNT ? R.string.msg_max_char_count : R.string.msg_import);
